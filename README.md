@@ -12,7 +12,7 @@ are effectively wrapped by the MCP server. Fortunately, all of AdaCore's tools
 and toolchains offer feature-complete command-line interfaces. So there's
 really no reason not to present these to the agent directly, along with careful
 instructions on how best to use our tools and toolchains. That way, you or your
-agent can run whatever environemnt setup scripts may be needed prior to the
+agent can run whatever environment setup scripts may be needed prior to the
 agent invoking our tools.
 
 We hope you find these skills useful. Keep an eye on this repository; we'll be

@@ -30,7 +30,7 @@ overall progress and proof state.
 ```markdown
 # Proof Status: <program or unit or subprogram>
 <!-- Reflect the top-level goal given. Items in the list below are moved from
-     Not Start to In Progress to Reviewed and finally to Proved and Finalized. -->
+     Not Started to In Progress to Reviewed and finally to Proved and Finalized. -->
 
 Summary of final proof status.
 
@@ -220,7 +220,7 @@ subprogram or do non-proof work while a subagent is running.
 ## Step 7: Review Work for Antipatterns
 
 Before widening the scope to re-verify and marking the subprogram or unit as
-complete, carefully reread your now-proved implementation make sure you are
+complete, carefully reread your now-proved implementation and make sure you are
 following the guidance in (at least) [contracts.md](contracts.md) and
 [refactoring-for-proof.md](refactoring-for-proof.md).
 

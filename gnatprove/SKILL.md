@@ -1,8 +1,9 @@
 ---
 name: gnatprove
 description: This skill should be used when the user wants to "prove SPARK code", "run GNATprove", "investigate unproved checks", "write contracts or invariants", "add loop invariants", "write ghost code or lemmas", or is working on SPARK formal verification. Provides a full GNATprove proof campaign workflow.
-version: 0.1.0
-user-invocable: true
+license: Apache-2.0
+metadata:
+  version: "0.1.0"
 ---
 
 # GNATprove SPARK Verification Skill

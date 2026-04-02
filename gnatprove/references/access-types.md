@@ -184,7 +184,7 @@ end loop;
 Languages like C/C++/Rust require access types or explicit references to ensure
 pass-by-reference and to allow a subprogram to modify a parameter. In Ada, it's
 rare to force pass-by-reference; generally, we let the compiler make this choice.
-Additional, in Ada, we always prefer to use `out` or `in out` parameters in
+Additionaly, in Ada, we always prefer to use `out` or `in out` parameters in
 subprograms that want to modify parameters, avoiding this use of access types.
 
 Prefer arrays and records when size is known or bounded. Use access types only
