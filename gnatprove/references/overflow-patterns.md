@@ -91,7 +91,8 @@ Sum : Long_Long_Integer :=
    Long_Long_Integer (A(I)) + Long_Long_Integer (A(J));
 ```
 
-Three 32-bit integers sum safely in 64 bits. Convert back after range-checking.
+Multiple 32-bit integers sum safely in 64 bits. Convert back after
+range-checking.
 
 ### Division-then-convert: bound numerator by `Target'Last * Min_Denom`
 

@@ -108,6 +108,7 @@ Before writing any annotations or running any proofs beyond the initial assessme
 | Topic | File | When to read |
 |-------|------|-------------|
 | Proof workflow | [workflow.md](references/workflow.md) | Multi-step proof campaigns |
+| Reading gnatprove.out | [gnatprove-out.md](references/gnatprove-out.md) | Understanding how to read the output file GNATprove writes |
 | Overflow patterns | [overflow-patterns.md](references/overflow-patterns.md) | Index arithmetic, intermediate overflow |
 | Investigating failures | [proof-debugging.md](references/proof-debugging.md) | Unproved checks |
 | Writing contracts | [contracts.md](references/contracts.md) | Adding Pre/Post/Global/Depends |
