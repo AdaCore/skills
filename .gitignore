@@ -1,2 +1,2 @@
-# Don't commit .claude, as per Claude docs.
-.claude
+# Don't commit, as per Claude docs.
+.claude/settings.local.json
