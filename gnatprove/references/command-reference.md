@@ -1,0 +1,108 @@
+# GNATprove Command-Line Reference
+
+## Invocation
+
+```bash
+gnatprove -P project.gpr [switches] [-cargs compiler_switches]
+```
+
+## Proof Levels
+
+| Level | Provers | Timeout | Memlimit | Counterexamples |
+|-------|---------|---------|----------|-----------------|
+| 0 | cvc5 | 1s | 1000MB | off |
+| 1 | cvc5, z3, altergo | 1s | 1000MB | off |
+| 2 | cvc5, z3, altergo | 5s | 1000MB | on |
+| 3 | cvc5, z3, altergo | 20s | 2000MB | on |
+| 4 | cvc5, z3, altergo | 60s | 2000MB | on |
+
+Start at level 0-1. Level 2 is the practical maximum for iterative work.
+Levels 3-4 are for final verification passes.
+
+## Mode Selection
+
+| Flag | What it checks |
+|------|---------------|
+| `--mode=check` | Basic SPARK checks |
+| `--mode=check_all` | Full SPARK legality checking |
+| `--mode=flow` | Initialization + data flow |
+| `--mode=prove` | Proof only (skip flow) |
+| `--mode=all` | Flow + proof (default) |
+
+**Aliases** (methodology names): `stone` = `check_all`, `bronze` = `flow`,
+`silver` = `gold` = `all`. Note that `silver` and `gold` are **identical** --
+both run full flow + proof. The stone/bronze/silver/gold terminology describes
+your *proof objectives*, not distinct analysis modes.
+
+## Scoping
+
+| Flag | Effect |
+|------|--------|
+| `--limit-subp=file.adb:NN` | Prove only the subprogram declared at line NN |
+| `--limit-line=file.adb:NN` | Prove **exactly** checks on line NN (not "up to") |
+| `--limit-name=Name` | Prove only the named subprogram |
+| `-u file.adb` | Prove only the specified file |
+
+**Important**: `--limit-subp` line number must be the **declaration** line (where
+contracts are), not the body. Filenames must not include the source directory prefix
+handled by the GPR file.
+
+**`--limit-line` semantics**: Proves exactly the check(s) at that line, assuming all
+assertions above it (even unproved ones). This makes it a powerful what-if tool:
+insert `pragma Assert (P)` above a failing check and use `--limit-line` to test
+whether P is sufficient.
+
+## Output Control
+
+| Flag | Effect |
+|------|--------|
+| `--output=oneline` | One check per line (good for status/counting) |
+| `--output=brief` | Shorter messages |
+| `--report=fail` | Only unproved checks (default) |
+| `--report=all` | Proved and unproved (mainly for user reassurance) |
+| `--report=provers` | Include which prover solved each check |
+| `--report=statistics` | Timing and statistics |
+| `--info` | Output informational messages |
+| `--counterexamples=on/off` | Toggle counterexample generation |
+| `--warnings=off/continue/error` | Warning handling |
+| `--checks-as-errors=on/off` | Treat check failures as errors |
+
+**Preferred output modes**: Use `--output=oneline` for quick assessment and failure
+counting. Use default output (no `--output` flag) when working check-by-check with
+`--limit-line`, as the verbose messages include useful context.
+
+## Performance
+
+| Flag | Effect |
+|------|--------|
+| `-j N` | Parallel processes (0 = all cores) |
+| `--timeout=N` | Per-check prover timeout in seconds |
+| `--steps=N` | Max proof steps (more reproducible than timeout) |
+| `--memlimit=N` | Prover memory limit in MB |
+| `--no-loop-unrolling` | Skip automatic loop unrolling |
+| `--no-inlining` | Skip contextual analysis inlining |
+| `--replay` | Reuse stored proofs (slightly elevated limits; user limits ignored) |
+
+## Other
+
+| Flag | Effect |
+|------|--------|
+| `-f` | Force full reanalysis |
+| `-k` | Continue past errors |
+| `--clean` | Remove intermediate files and exit |
+
+## Speed Tips
+
+1. Always use `-j0` (all cores)
+2. Start at `--level=0`, increase only when needed
+3. Use `--limit-subp` to focus on one subprogram
+4. `--no-loop-unrolling` avoids expensive expansions
+5. `--counterexamples=off` at low levels (saves time)
+6. `--replay` for quick re-verification after small changes
+7. `--steps` over `--timeout` for reproducibility across machines
+
+## References
+
+- [Command Line Invocation](https://docs.adacore.com/live/wave/spark2014/html/spark2014_ug/en/appendix/command_line_invocation.html) -- Complete GNATprove switch reference
+- [Running GNATprove from the Command Line](https://docs.adacore.com/live/wave/spark2014/html/spark2014_ug/en/gnatprove.html#running-gnatprove-from-the-command-line) -- Invocation modes and common usage
+- [Project Attributes](https://docs.adacore.com/live/wave/spark2014/html/spark2014_ug/en/appendix/project_attributes.html) -- GPR attributes controlling GNATprove behavior
