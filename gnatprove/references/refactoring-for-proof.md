@@ -36,10 +36,8 @@ But this cost is almost always worth paying because:
 3. **The code is better** — the same decomposition that aids proof aids
    readability, testing, and reuse
 
-This is not a last resort. It should be an early step in the workflow: after
-the initial assessment, before diving into annotation work, consider each
-subprogram with unproved checks and ask whether modularization would simplify
-the proof.
+Decomposition is an early step, not a last resort. Evaluate each subprogram
+with unproved checks for decomposition before annotating.
 
 ### Why monolithic code fails proof
 

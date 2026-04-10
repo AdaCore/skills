@@ -101,6 +101,19 @@ The file ends after the last detailed entry. There is no trailing summary.
 | What was analyzed? | "Analyzed N unit(s)" line and per-unit breakdown |
 | What was skipped? | Lines containing "skipped; body is SPARK_Mode => Off" |
 
+## Explain Codes
+
+Some GNATprove messages include an **explain code** — a short tag identifying
+the specific check or message kind. When output contains one, run:
+
+```bash
+gnatprove --explain CODE
+```
+
+This prints a detailed explanation of the message, including what causes it and
+how to address it. It is a documentation lookup — it does not invoke the prover
+and completes in milliseconds. It is not subject to the no-redundant-runs rule.
+
 ## Workflow integration
 
 After reading `gnatprove.out`:
