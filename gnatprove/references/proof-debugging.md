@@ -11,12 +11,17 @@ Every unproved check falls into one of these categories:
 | 1 | Bug in implementation | Fix the code |
 | 2 | Assertion too strong | Weaken or correct it |
 | 3 | Missing annotation | Add precondition, postcondition, or loop invariant |
-| 4 | GNATprove modeling limitation | Use lemma or pragma Assert hint |
+| 4 | GNATprove modeling limitation | Use a lemma or introduce an axiom **only with user permission** |
 | 5 | Insufficient proof time | Raise `--level` or `--steps` |
 | 6 | Prover can't handle the logic | Custom lemma or restructure code |
 
-Causes 1-3 account for the vast majority. Causes 5-6 are rare -- exhaust
-all other possibilities before concluding the prover is the problem.
+Causes 1-3 account for the vast majority of proof failures above `--level=2`.
+
+Cause 4 can often been detected by using `--info` and analyzing messages that
+SPARK provides indicating imprecise modeling.
+
+Causes 5-6 are rarely permanent at `--level=2` -- exhaust all other
+possibilities before concluding the prover is the problem.
 
 The most common mistake is declaring "the SMT solver can't prove this" too
 early. In practice, nearly every failure is: wrong code, missing information,
@@ -46,7 +51,7 @@ but may not suggest the best form of the fix.
 
 ### Step 1: Is the code correct?
 
-Compile with `-gnata -gnato` and run tests. If the check fires at runtime,
+Compile with `-gnata` and run tests. If the check fires at runtime,
 it's a code bug.
 
 ### Step 2: Missing annotations?
@@ -59,6 +64,11 @@ Add the suggested contract (adjusting form as needed).
 Binary search for where the proof breaks. Place assertions between where a
 property should hold and where GNATprove loses it. If the midpoint proves,
 the problem is later.
+
+**Once the missing fact is identified**: if it is an arithmetic ordering or
+monotonicity property (e.g. `A * B ≤ C`, `X / Y ≤ X`, monotonicity of a
+computed value), jump to Step 5a — the SPARK Lemma Library may have it, and
+a lemma call often makes raising the level unnecessary.
 
 ### Step 3a: Need a bound on an input?
 
@@ -80,10 +90,20 @@ it, the callee needs a frame postcondition. See [contracts.md](contracts.md).
 Raise `--level` (0 -> 1 -> 2). Beyond 2 requires user permission. Use
 `--steps=N` for reproducibility.
 
-### Step 6: Ghost lemma (prefer to ask user)
+### 6: Lemmas
 
-See [ghost-code-and-lemmas.md](ghost-code-and-lemmas.md). Most of the time,
-a simpler approach (Assert, tighter types, restructured code) suffices.
+**Before writing a custom lemma, check whether `SPARK.Lemmas.*` has what you need.**
+
+First, verify the SPARK.Lemmas is available in the project:
+
+1. Read the top-level GPR file (the one passed to gnatprove with `-P`).
+2. Collect all `with "..."` imports (recursively).
+3. For each imported GPR file, check whether it contains `extends "sparklib_internal"`.
+
+If no imported GPR extends `sparklib_internal`: **stop and ask the user to add the sparklib dependency before continuing.** Do not write a custom lemma as a workaround for a missing library import.
+
+If available: find the relevant package in [ghost-code-and-lemmas.md](ghost-code-and-lemmas.md) and call the lemma at the proof point. If `SPARK.Lemmas.*` has nothing applicable, write a custom lemma.
+
 
 ### Step 7: Last resort (requires user permission)
 

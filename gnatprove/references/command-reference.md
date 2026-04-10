@@ -23,11 +23,11 @@ Levels 3-4 are for final verification passes.
 
 | Flag | What it checks |
 |------|---------------|
-| `--mode=check` | Basic SPARK checks |
-| `--mode=check_all` | Full SPARK legality checking |
-| `--mode=flow` | Initialization + data flow |
-| `--mode=prove` | Proof only (skip flow) |
-| `--mode=all` | Flow + proof (default) |
+| `--mode=check` | Basic SPARK checks (errors only) |
+| `--mode=check_all` | Full SPARK legality checking (errors, warnings and messages) |
+| `--mode=flow` | check (report errors only) + Initialization & data flow |
+| `--mode=prove` | check (report errors only) + flow (report errors only) + proof |
+| `--mode=all` | all errors, warnings and messages from check, flow and proof |
 
 **Aliases** (methodology names): `stone` = `check_all`, `bronze` = `flow`,
 `silver` = `gold` = `all`. Note that `silver` and `gold` are **identical** --
@@ -87,13 +87,14 @@ counting. Use default output (no `--output` flag) when working check-by-check wi
 
 | Flag | Effect |
 |------|--------|
-| `-f` | Force full reanalysis |
+| `-f` | Force full reanalysis — useful with `--limit-subp`; **forbidden with `--limit-line`** (forces full recompile + flow for a single-check run) |
 | `-k` | Continue past errors |
 | `--clean` | Remove intermediate files and exit |
+| `--explain CODE` | Print a detailed explanation of the check or message identified by the given explain code. **Not a proof run** — does not invoke the prover, completes in milliseconds. Use freely when output contains an explain code; not subject to the no-redundant-runs rule. |
 
 ## Speed Tips
 
-1. Always use `-j0` (all cores)
+1. Use `-j0` (all cores) unless the user has specified a parallelism limit
 2. Start at `--level=0`, increase only when needed
 3. Use `--limit-subp` to focus on one subprogram
 4. `--no-loop-unrolling` avoids expensive expansions
