@@ -111,6 +111,9 @@ Summary of final proof status.
 - **Update after each meaningful step**, not after every GNATprove invocation
 - **Keep it honest**: if a subprogram is "Proved" but you later change its callee's
   contract, move it back to "Not Started" (it needs re-verification)
+- **Don't write line numbers**: as you edit files, line numbers will become
+  incorrect. Use names (for subprograms) or descriptions (for messages) so you
+  can find the right location again after source files are updated.
 
 ---
 
@@ -168,7 +171,8 @@ same constraint appearing in 2+ preconditions, STOP and introduce a subtype befo
 adding more preconditions. See the "Subtype Self-Check" in [contracts.md](contracts.md).
 
 **Assess decomposition.** For any subprogram with >30 lines or >3 levels of nesting,
-you MUST evaluate whether to decompose it BEFORE annotating. See [refactoring-for-proof.md](refactoring-for-proof.md) for criteria.
+you MUST evaluate whether to decompose it BEFORE annotating. See
+[refactoring-for-proof.md](refactoring-for-proof.md) for criteria.
 
 ### Step 1b: Strategy Questions
 
@@ -247,6 +251,12 @@ After completing all checks in a subprogram, re-verify the whole subprogram:
 ```bash
 gnatprove ... --limit-subp=file.adb:NN -f 2>&1 | tee gnatprove-run.txt
 ```
+
+**Line numbers are not stable across edits.** Do not assume the previous `NN`
+remains valid after the subagent has completed its work. You *must* re-locate
+the target in the current file before you run:
+  - `--limit-subp=file.adb:NN` must use the subprogram declaration's current
+    line number
 
 The `-f` forces full reanalysis. This catches checks you may have missed and
 verifies that your `pragma Assert` breadcrumbs themselves prove.
