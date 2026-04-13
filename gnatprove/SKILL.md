@@ -66,13 +66,21 @@ Common arguments:
 - `-jN` where 0 means as many threads as possible and N>0 means use that many parallel threads
 - `--level=1` (proof level 0-4; start low, increase only if needed)
 - `--limit-subp=file.adb:NN` (prove one subprogram; NN = **declaration** line, not body)
-- `--limit-line=file.adb:NN` (prove exactly one check; assumes assertions above)
+- `--limit-line=file.adb:MM` (prove exactly one check; assumes assertions above)
 - `--output=oneline` (one check per line; good for status assessment)
 - `--mode=stone` (SPARK legality), `--mode=bronze` (flow), `--mode=all` (flow + proof, default)
 - `-f` (force full reanalysis)
 
 Note: with `--limit-subp` or `--limit-line`, the filename must NOT include the `src/`
 prefix -- the GPR file handles source directories.
+
+**Line numbers are not stable across edits.** Do not assume the previous `MM`
+or `NN` remains valid after inserting, deleting, or moving
+code/comments/contracts above the target. After any such change, you *must*
+re-locate the target in the current file before the next run of:
+  - `--limit-line=file.adb:MM` must use the check's current line number
+  - `--limit-subp=file.adb:NN` must use the subprogram declaration's current
+    line number
 
 ## Proof Status File
 

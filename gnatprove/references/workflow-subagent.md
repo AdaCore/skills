@@ -44,7 +44,19 @@ The main agent's prompt will give you:
 | Add frame postcondition | Discovered Obligations: "Re-verify callers of Callee_Name" |
 | All checks ticked off | Run `--limit-subp=file.adb:N -f`; report pass/fail, level used, new obligations |
 
-## Step 1: Read the Right Things
+When updating `proof-status.md`:
+
+- **Keep it honest**: if a subprogram is "Proved" but you later change its callee's
+  contract, move it back to "Not Started" (it needs re-verification)
+- **Don't write line numbers**: as you edit files, line numbers will become
+  incorrect. Use names (for subprograms) or descriptions (for messages) so you
+  can find the right location again after source files are updated.
+
+---
+
+## Subagent: Tactical Loop
+
+### Step 1: Read the Right Things
 
 For the subprogram under proof, read:
 - The **subprogram itself** (body + contracts)
@@ -57,7 +69,7 @@ contract matters. If a callee has no contract, only its parameter types matter.
 proof; so are subprograms marked with the aspect
 `Annotate => (GNATprove, Inline_For_Proof)`.
 
-## Step 2: Evaluate Decomposition
+### Step 2: Evaluate Decomposition
 
 **Before annotating, evaluate whether this subprogram should be decomposed.**
 
@@ -69,9 +81,9 @@ A subprogram is NOT a decomposition candidate when its parts are so tightly coup
 
 See [refactoring-for-proof.md](refactoring-for-proof.md) for patterns.
 
-## Step 3: Work Check-by-Check
+### Step 3: Work Check-by-Check
 
-### Initial Assessment (run exactly once)
+#### Initial Assessment (run exactly once)
 
 Your first gnatprove invocation must be scoped to your assigned subprogram
 using `--limit-subp`. Never use `-u` or broader scope in the tactical loop.
@@ -85,7 +97,7 @@ If `proof-status.md` already enumerates all failing checks for this subprogram,
 you may skip this run and proceed directly to check-by-check iteration — but
 the scope rule still applies: never run `-u` to "refresh" the picture.
 
-### Iteration (one check at a time)
+#### Iteration (one check at a time)
 
 For each failing check, focus with both `--limit-subp` and `--limit-line`.
 **Always pipe output through `tee`** so you can re-filter it later without
@@ -95,6 +107,14 @@ re-running:
 gnatprove ... -j0 --limit-subp=file.adb:NN --limit-line=file.adb:MM 2>&1 | tee gnatprove-run.txt
 ```
 
+**Line numbers are not stable across edits.** Do not assume the previous `MM`
+or `NN` remains valid after inserting, deleting, or moving
+code/comments/contracts above the target. After any such change, you *must*
+re-locate the target in the current file before the next run of:
+  - `--limit-line=file.adb:MM` must use the check's current line number
+  - `--limit-subp=file.adb:NN` must use the subprogram declaration's current
+    line number
+
 To re-examine the output (e.g. filter to a different pattern), read or grep
 `gnatprove-run.txt` — do not re-run gnatprove.
 
@@ -103,14 +123,14 @@ SPARK assumes all assertions above the target line (even unproved ones). This is
 powerful for what-if exploration: you can insert `pragma Assert (P)` above a
 failing check to test whether P would help, without yet proving P.
 
-### Ordering within a subprogram
+#### Ordering within a subprogram
 
 1. **Top-to-bottom**: because SPARK assumes assertions above the current check
 2. **Overflows first**: if you can't prove absence of overflow, nothing else matters;
    overflow fixes often introduce changes that affect downstream checks (more
    generally, this applies to all kinds of runtime errors that SPARK reports)
 
-## Step 4: Fix, Prove, Repeat
+### Step 4: Fix, Prove, Repeat
 
 **Do not re-run GNATprove to understand a failure.** Re-running is only
 permitted after a code or contract change, or to increase proof level.
@@ -128,11 +148,18 @@ back to `--limit-subp` alone or `-u` to verify a single-check fix:
 gnatprove ... -j0 --limit-subp=file.adb:NN --limit-line=file.adb:MM 2>&1 | tee gnatprove-run.txt
 ```
 
+**Line numbers are not stable across edits.** Do not assume the previous `MM`
+or `NN` remains valid after inserting, deleting, or moving
+code/comments/contracts above the target. After any such change, you *must*
+re-locate the target in the current file before the next run of:
+  - `--limit-line=file.adb:MM` must use the check's current line number
+  - `--limit-subp=file.adb:NN` must use the subprogram declaration's current
+    line number
+
 For each failing check, follow the decision tree in
 [proof-debugging.md](proof-debugging.md).
 
 If the check is in a loop, also follow the guidance in [loops.md](loops.md).
-
 
 **Do not blame the prover prematurely.** Most proof failures are caused by:
 - Wrong code (the check is correct; the code isn't)
@@ -141,6 +168,8 @@ If the check is in a loop, also follow the guidance in [loops.md](loops.md).
 - Non-inductive property (needs to reference the loop index)
 
 The prover being "too weak" is the rarest cause.
+
+---
 
 ## Proof Level Discipline
 
