@@ -250,7 +250,7 @@ Callers write `Is_Partitioned(A, P)` instead of the full quantified expression.
 
 ## References
 
-- [contracts.md](contracts.md) — Preconditions over defensive code; types over contracts
+- [contracts.md](../spark/contracts.md) — Preconditions over defensive code; types over contracts
 - [overflow-patterns.md](overflow-patterns.md) — Full catalog of arithmetic restructuring
 - [loops.md](loops.md) — Loop invariant patterns including buffer+slice
 - [workflow.md](workflow.md) — Preconditions vs. code restructuring decision guidance

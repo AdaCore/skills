@@ -17,7 +17,8 @@ gnatprove -P project.gpr [switches] [-cargs compiler_switches]
 | 4 | cvc5, z3, altergo | 60s | 2000MB | on |
 
 Start at level 0-1. Level 2 is the practical maximum for iterative work.
-Levels 3-4 are for final verification passes.
+Levels 3 and 4 should *never* be used without user guidance. They are sometimes
+required, but generally only waste time.
 
 ## Mode Selection
 

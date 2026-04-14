@@ -136,9 +136,9 @@ failing check to test whether P would help, without yet proving P.
 permitted after a code or contract change, or to increase proof level.
 Read `gnatprove.out` first — it already contains what you need, and a
 re-run without a change produces the same output at significant cost.
-See [gnatprove-out.md](gnatprove-out.md). *(Exception: `--explain CODE`
+See [gnatprove-out.md](../gnatprove/gnatprove-out.md). *(Exception: `--explain CODE`
 is a documentation lookup, not a proof run — see
-[gnatprove-out.md § Explain Codes](gnatprove-out.md#explain-codes).)*
+[gnatprove-out.md § Explain Codes](../gnatprove/gnatprove-out.md#explain-codes).)*
 
 **After a code or contract change**, verify the fix by re-running with
 `--limit-line` for the specific check you just addressed. Never widen
@@ -186,12 +186,12 @@ Consult these as needed:
 | Topic | File |
 |-------|------|
 | Investigating failures | [proof-debugging.md](proof-debugging.md) |
-| Writing contracts | [contracts.md](contracts.md) |
+| Writing contracts | [contracts.md](../spark/contracts.md) |
 | Loop invariants | [loops.md](loops.md) |
-| Ghost code & lemmas | [ghost-code-and-lemmas.md](ghost-code-and-lemmas.md) |
+| Ghost code & lemmas | [ghost-code-and-lemmas.md](../spark/ghost-code-and-lemmas.md) |
 | Overflow patterns | [overflow-patterns.md](overflow-patterns.md) |
 | Floating-point proofs | [floating-point.md](floating-point.md) |
-| Access types | [access-types.md](access-types.md) |
+| Access types | [access-types.md](../spark/access-types.md) |
 | Refactoring for proof | [refactoring-for-proof.md](refactoring-for-proof.md) |
-| CLI options | [command-reference.md](command-reference.md) |
-| Reading proof output | [gnatprove-out.md](gnatprove-out.md) |
+| CLI options | [command-reference.md](../gnatprove/command-reference.md) |
+| Reading proof output | [gnatprove-out.md](../gnatprove/gnatprove-out.md) |
