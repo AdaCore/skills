@@ -122,5 +122,5 @@ After reading `gnatprove.out`:
 2. Grep for `not proved` in the detailed section to get the subprogram list
 3. For each unproved subprogram, use `--limit-subp=file.adb:NN` (using the
     declaration line from the report) to get per-check details
-4. Follow the investigation workflow in [proof-debugging.md](proof-debugging.md)
+4. Follow the investigation workflow in [proof-debugging.md](../proof/proof-debugging.md)
 5. Update the proof status file with findings

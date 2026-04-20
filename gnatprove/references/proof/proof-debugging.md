@@ -67,8 +67,8 @@ the problem is later.
 
 **Once the missing fact is identified**: if it is an arithmetic ordering or
 monotonicity property (e.g. `A * B ≤ C`, `X / Y ≤ X`, monotonicity of a
-computed value), jump to Step 5a — the SPARK Lemma Library may have it, and
-a lemma call often makes raising the level unnecessary.
+computed value), jump to Step 6 (Lemmas) — the SPARK Lemma Library may have
+it, and a lemma call often makes raising the level unnecessary.
 
 ### Step 3a: Need a bound on an input?
 
@@ -76,21 +76,21 @@ If the fix requires bounding a parameter's value, add a precondition on the
 current subprogram *or* introduce a subtype — do NOT add a runtime guard
 `(if X > Bound then return)`.
 Guards are defensive code, which is a SPARK antipattern (see
-[contracts.md](contracts.md)). Push the constraint to the caller via Pre. If
+[contracts.md](../spark/contracts.md)). Push the constraint to the caller via Pre. If
 this creates a cascade of preconditions, consider whether the bound belongs in
 a subtype instead.
 
 ### Step 4: Frame condition?
 
 If a property was established but a call with `in out` makes GNATprove forget
-it, the callee needs a frame postcondition. See [contracts.md](contracts.md).
+it, the callee needs a frame postcondition. See [contracts.md](../spark/contracts.md).
 
 ### Step 5: Increase level
 
 Raise `--level` (0 -> 1 -> 2). Beyond 2 requires user permission. Use
 `--steps=N` for reproducibility.
 
-### 6: Lemmas
+### Step 6: Lemmas
 
 **Before writing a custom lemma, check whether `SPARK.Lemmas.*` has what you need.**
 
@@ -102,7 +102,7 @@ First, verify the SPARK.Lemmas is available in the project:
 
 If no imported GPR extends `sparklib_internal`: **stop and ask the user to add the sparklib dependency before continuing.** Do not write a custom lemma as a workaround for a missing library import.
 
-If available: find the relevant package in [ghost-code-and-lemmas.md](ghost-code-and-lemmas.md) and call the lemma at the proof point. If `SPARK.Lemmas.*` has nothing applicable, write a custom lemma.
+If available: find the relevant package in [ghost-code-and-lemmas.md](../spark/ghost-code-and-lemmas.md) and call the lemma at the proof point. If `SPARK.Lemmas.*` has nothing applicable, write a custom lemma.
 
 
 ### Step 7: Last resort (requires user permission)

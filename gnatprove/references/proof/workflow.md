@@ -134,9 +134,9 @@ before starting the campaign."
 permitted after a code or contract change, or to increase proof level. Pipe
 every run through `tee` so you can re-filter the captured output without a
 new run. `gnatprove.out` is also available for deeper investigation — see
-[gnatprove-out.md](gnatprove-out.md). *(Exception: `--explain CODE` is a
+[gnatprove-out.md](../gnatprove/gnatprove-out.md). *(Exception: `--explain CODE` is a
 documentation lookup, not a proof run — see
-[gnatprove-out.md § Explain Codes](gnatprove-out.md#explain-codes).)*
+[gnatprove-out.md § Explain Codes](../gnatprove/gnatprove-out.md#explain-codes).)*
 
 Before reading code in depth, run GNATprove to see where things stand.
 
@@ -168,7 +168,7 @@ add it to "In Progress" and list its failing checks.
 **Identify subtype candidates.** Scan the failing checks for recurring range
 constraints (e.g., altitude bounds, FOV bounds, resolution bounds). If you see the
 same constraint appearing in 2+ preconditions, STOP and introduce a subtype before
-adding more preconditions. See the "Subtype Self-Check" in [contracts.md](contracts.md).
+adding more preconditions. See the "Subtype Self-Check" in [contracts.md](../spark/contracts.md).
 
 **Assess decomposition.** For any subprogram with >30 lines or >3 levels of nesting,
 you MUST evaluate whether to decompose it BEFORE annotating. See
@@ -233,7 +233,7 @@ When the subagent finishes, move to Step 4 (Review) before widening scope.
 **Status file**: Re-read `proof-status.md`. Confirm the subprogram's checks are
 all ticked off in "In Progress" before beginning review.
 
-Before widening scope, reread the now-proved implementation against [contracts.md](contracts.md) and [refactoring-for-proof.md](refactoring-for-proof.md). Check for:
+Before widening scope, reread the now-proved implementation against [contracts.md](../spark/contracts.md) and [refactoring-for-proof.md](refactoring-for-proof.md). Check for:
 
 - Recurring range constraints that should be subtypes (Subtype Self-Check in contracts.md)
 - Type, contract, or code improvements that the pressure of proving obscured
@@ -313,7 +313,7 @@ move the caller back to "In Progress" and list the new failures.
 ## References
 
 - [workflow-subagent.md](workflow-subagent.md) -- Tactical Loop steps for subagents
-- [gnatprove-out.md](gnatprove-out.md) -- Reading the gnatprove.out file
+- [gnatprove-out.md](../gnatprove/gnatprove-out.md) -- Reading the gnatprove.out file
 - [Levels of SPARK Use](https://docs.adacore.com/live/wave/spark2014/html/spark2014_ug/en/usage_scenarios.html#levels-of-software-assurance) -- Stone through Platinum assurance levels
 - [Silver Level - Absence of Run-time Errors](https://docs.adacore.com/live/wave/spark2014/html/spark2014_ug/en/usage_scenarios.html#silver-level-absence-of-run-time-errors-aorte) -- Proving AoRTE as the standard baseline
 - [Gold Level - Key Integrity Properties](https://docs.adacore.com/live/wave/spark2014/html/spark2014_ug/en/usage_scenarios.html#gold-level-proof-of-key-integrity-properties) -- Functional correctness beyond AoRTE

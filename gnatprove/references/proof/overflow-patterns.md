@@ -24,7 +24,7 @@ Two key techniques:
 
 When neither works, a **precondition** bounding the inputs is appropriate --
 this is a legitimate semantic constraint, not a workaround. See
-[contracts.md](contracts.md) for guidance on when preconditions are the right
+[contracts.md](../spark/contracts.md) for guidance on when preconditions are the right
 tool vs. restructuring the code.
 
 Overflow in **contract expressions** is also checked. Write `X <= Integer'Last - Y`
