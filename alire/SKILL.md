@@ -32,8 +32,7 @@ Note: `alr` has comprehensive built-in help. At any point, `alr --help` lists al
 |---|---|---|
 | — | Install Alire | [installation.md](references/installation.md) |
 | `alr search` | Search for crates in the index | [alire-search.md](references/alire-search.md) |
-| `alr toolchain` | Manage compiler toolchains | [alire-toolchain.md](references/alire-toolchain.md) |
-| `alr init` | Create a new Alire project | [alire-init.md](references/alire-init.md) |
+| `alr toolchain` | Inspect or pin compiler toolchains (optional — `alr init`/`alr build` auto-install  default toolchain on first use) | [alire-toolchain.md](references/alire-toolchain.md) |  
 | `alr get` | Fetch a crate from the index | [alire-get.md](references/alire-get.md) |
 | `alr with` | Add a dependency | [alire-with.md](references/alire-with.md) |
 | `alr pin` | Pin a dependency to a local path or Git repo | [alire-pin.md](references/alire-pin.md) |

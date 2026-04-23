@@ -1,9 +1,17 @@
 # Managing Toolchains
 
+
+**You almost never need this.** `alr init` and `alr build` auto-install a default GNAT + gprbuild on first use, so 
+there is no "install the toolchain first" step before creating or building a crate. Jump straight to [alire-init.md
+(alire-init.md) for new projects.                                                                                 
+                                                                                                                     
+Only reach for `alr toolchain` when:                                                                               
+- The user explicitly asks to pin a specific GNAT version.                                                         
+- You need to inspect what's currently installed (`alr toolchain` with no arguments).                              
+
 This section should only be used as a last resort and only if you are sure there is no other solution. Always 
 ask the user before selecting a toolchain version. Selecting a toolchain version is like hard-coding a compiler
 and can create problems if some of the crates depend on other compilers.
-
 
 
 List available toolchains:
