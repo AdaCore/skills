@@ -42,6 +42,7 @@ Note: `alr` has comprehensive built-in help. At any point, `alr --help` lists al
 | `alr exec`  | Execute a command in the project environment | [alire-exec.md](references/alire-exec.md) |
 | `alr printenv` | Print environment variables | [alire-printenv.md](references/alire-printenv.md) |
 | — | Cross-compile for Raspberry Pi Pico | [raspberry-pi-pico.md](references/raspberry-pi-pico.md) |
+| — | Cross-compile for Zephyr (Arm / RISC-V) | [zephyr.md](references/zephyr.md) |
 
    Commands Not in the Reference Chart
 

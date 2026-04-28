@@ -1,0 +1,10 @@
+{
+  "name": "adacore-skills",
+  "version": "0.1.0",
+  "description": "AdaCore agent skills for Alire package management and GNATprove SPARK verification",
+  "author": {
+    "name": "AdaCore",
+    "email": "mhermeling@adacore.com"
+  },
+  "license": "Apache-2.0"
+}
