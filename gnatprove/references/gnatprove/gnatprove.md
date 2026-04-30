@@ -13,8 +13,13 @@ Remember to always run `gnatprove` teeing its output to a file so you can
 reexamine the output without re-running `gnatprove`, like this:
 
 ```bash
-  gnatprove -P <project.gpr> -j0 <arguments> 2>&1 | tee gnatprove-run.txt
+  gnatprove -P <project.gpr> -j0 --output-header <arguments> 2>&1 | tee gnatprove-run.txt
 ```
+
+`--output-header` is mandatory. It prepends a header to `gnatprove.out`
+recording the exact command line, gnatprove version, host, and timestamp —
+the only reliable after-the-fact record of *how* the run was invoked. See
+[gnatprove-out.md § Invocation header](gnatprove-out.md#invocation-header).
 
 ## Analysis Modes: Stone/Check, Bronze/Flow, Silver/Gold/Platinum/Proof
 
@@ -71,6 +76,13 @@ assertions above it (even unproved ones). This makes it a powerful what-if tool:
 insert `pragma Assert (P)` above a failing check and use `--limit-line` to test
 whether P is sufficient.
 
+**Conjoined `Post` on multiple lines**: If the failing check is on a conjunct of
+a multi-line postcondition (e.g. a message reported on `and then Q`), target the
+line of the **first term** of the Post expression — not the conjunct's own line,
+not the `Post =>` or comment line. Targeting the conjunct line typically yields
+a misleading "success" that does not mean the conjunct proved. See
+[../proof/proof-debugging.md § Conjunct lines in a Post are not check lines](../proof/proof-debugging.md#conjunct-lines-in-a-post-are-not-check-lines--do-not-target-them).
+
 ## Forcing Analysis
 
 `gnatprove` caches analysis results locally to speed up analysis during
@@ -79,10 +91,13 @@ development. This is the default behavior and is correct and to be preferred.
 Passing `-f` forces full reanalysis, bypassing the cache. This is expensive, as
 all phases are performed again fully.
 
-* during routine / iterative work: *do not* use `-f`
-* when widening scope (`--limit-line` → `--limit-subp` → `-u`): *do* use `-f` —
-  cached results from the narrower run may be reused, masking checks in the
-  wider scope
+* during routine / iterative work: **do not** use `-f`. The subagent's tactical
+  loop is explicitly forbidden from passing `-f`
+  (see [workflow-subagent.md](../proof/workflow-subagent.md) Hard Rules).
+* when widening scope at the end of a campaign (`--limit-subp` → `-u` → whole
+  program): **do** use `-f` — cached results from the narrower run may be
+  reused otherwise, masking checks in the wider scope. This is the main
+  agent's job in [workflow.md § Step 5](../proof/workflow.md#step-5-widen-scope-and-re-verify).
 * when confirming results at a specific proof level: `-f` is optional; it
   ensures results are not cache artifacts, but re-runs all phases at full cost
 
@@ -212,4 +227,10 @@ successful analysis, when the analysis succeeds.
 
 If you need more information about the last run, you can analyze
 `gnatprove.out` following the instructions in
-`[gnatprove-out.md](gnatprove-out.md)`
+`[gnatprove-out.md](gnatprove-out.md)`. When invoked with `--output-header`
+(required — see Quick Start above), `gnatprove.out` begins with an
+invocation header recording the exact command line, version, host, and
+timestamp. Read the header *first* whenever you open `gnatprove.out`: it
+tells you which run produced the file and what switches were active, which
+is the foundation for every other interpretation you do afterwards. See
+[gnatprove-out.md § Invocation header](gnatprove-out.md#invocation-header).

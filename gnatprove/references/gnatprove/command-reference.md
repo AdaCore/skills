@@ -53,12 +53,20 @@ assertions above it (even unproved ones). This makes it a powerful what-if tool:
 insert `pragma Assert (P)` above a failing check and use `--limit-line` to test
 whether P is sufficient.
 
+**Conjoined `Post` on multiple lines**: If the failing check is on a conjunct of
+a multi-line postcondition (e.g. a message reported on `and then Q`), target the
+line of the **first term** of the Post expression — not the conjunct's own line,
+not the `Post =>` or comment line. Targeting the conjunct line typically yields
+a misleading "success" that does not mean the conjunct proved. See
+[../proof/proof-debugging.md § Conjunct lines in a Post are not check lines](../proof/proof-debugging.md#conjunct-lines-in-a-post-are-not-check-lines--do-not-target-them).
+
 ## Output Control
 
 | Flag | Effect |
 |------|--------|
 | `--output=oneline` | One check per line (good for status/counting) |
 | `--output=brief` | Shorter messages |
+| `--output-header` | **Mandatory for every run.** Prepends an invocation header (date, version, host, command line, `Proof_Switches`) to `gnatprove.out`. The only reliable after-the-fact record of how gnatprove was invoked; the main agent reads it to verify what a subagent ran. See [gnatprove-out.md § Invocation header](gnatprove-out.md#invocation-header). |
 | `--report=fail` | Only unproved checks (default) |
 | `--report=all` | Proved and unproved (mainly for user reassurance) |
 | `--report=provers` | Include which prover solved each check |
@@ -88,7 +96,7 @@ counting. Use default output (no `--output` flag) when working check-by-check wi
 
 | Flag | Effect |
 |------|--------|
-| `-f` | Force full reanalysis — useful with `--limit-subp`; **forbidden with `--limit-line`** (forces full recompile + flow for a single-check run) |
+| `-f` | Force full reanalysis. Used **only** during the main agent's closing widening pass (workflow.md Step 5 and onward — subprogram → unit → program). **Forbidden in the subagent's tactical loop** and in any iterative work: forcing a full recompile + flow reanalysis on every run is pure waste. |
 | `-k` | Continue past errors |
 | `--clean` | Remove intermediate files and exit |
 | `--explain CODE` | Print a detailed explanation of the check or message identified by the given explain code. **Not a proof run** — does not invoke the prover, completes in milliseconds. Use freely when output contains an explain code; not subject to the no-redundant-runs rule. |

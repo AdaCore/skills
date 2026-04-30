@@ -162,33 +162,6 @@ every assignment to the subtype must be proved in-range -- but this cost is
 paid once at the point where the value enters the system, rather than being
 replicated at every call site.
 
-## Clamping Anti-Pattern
-
-**Do NOT introduce clamps to make proofs easier.** A clamp silently changes
-behavior for out-of-range inputs:
-
-```ada
--- BAD: silently changes behavior, creates untestable dead code
-Altitude := Real64'Min (Raw_Altitude, MAX_ALTITUDE);
--- The "else" branch (Raw_Altitude > MAX_ALTITUDE) is dead code that
--- can never be tested. In certification, this is unacceptable.
-
--- GOOD: make the constraint visible as a precondition or subtype
-subtype Bounded_Altitude is Real64 range 0.0 .. MAX_ALTITUDE;
-procedure Process (Alt : Bounded_Altitude);
--- Callers must prove Alt is in range. The constraint is visible,
--- testable, and documented.
-```
-
-Why this matters: clamps create branches where one arm handles "impossible"
-inputs. This dead code cannot be exercised in testing, violating coverage
-requirements in certified systems. Worse, the clamp may mask a real error in
-the calling code.
-
-The parallel with `pragma Assume` is exact: both make the proof go through
-by hiding a gap, rather than closing it. Use subtypes or preconditions to push
-constraints to callers, where they become visible proof obligations.
-
 ## Gotchas
 
 - **Use `and then` / `or else`** in contracts. Short-circuit prevents evaluation

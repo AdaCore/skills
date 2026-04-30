@@ -1,13 +1,78 @@
 # Proving Loops
 
+## Read This First: Is an Invariant Even Needed?
+
+GNATprove automatically unrolls simple `for` loops that meet **all** of:
+- Fixed, small iteration count (< 20 iterations)
+- No existing `Loop_Invariant`
+- Only scalar local variables
+
+When a loop unrolls, GNATprove proves it iteration-by-iteration as if it were
+straight-line code. No induction is needed, and facts about the loop body flow
+naturally to checks after the loop.
+
+**Adding a `Loop_Invariant` disables unrolling.** The invariant then becomes
+its own proof obligation (init + preservation), and the facts available after
+the loop are restricted to what the invariant carries — often strictly weaker
+than what unrolling delivered for free.
+
+**Rule:** Do not add a `Loop_Invariant` to a small, bounded `for` loop unless
+a check *after* the loop is actually failing despite unrolling. If downstream
+assertions already prove, the loop needs no invariant.
+
+### Harmful invariant example
+
+GNATprove unrolls the four iterations of this loop and proves the post-loop
+assertions. Adding the invariants below made those assertions fail, because the
+invariants themselves did not prove and their presence suppressed unrolling:
+
+```ada
+for W in Corner_Wheel_Id loop
+   D_W   := Wheel_Disp (Float (Encoders (W)) * Metres_Per_Tick);
+   Sin_A := Sin (Steering (W));
+   Lemma_Sin_Bounded (Steering (W));
+   Cos_A := Cos (Steering (W));
+   Lemma_Cos_Bounded (Steering (W));
+   Lemma_WD_Trig (D_W, Cos_A);
+   Lemma_WD_Trig (D_W, Sin_A);
+   Vx_Body := Vx_Body + D_W * Cos_A / 4.0;
+   Vy_Body := Vy_Body + D_W * Sin_A / 4.0;
+   --  Harmful: these invariants do not themselves prove, and their presence
+   --  disables unrolling, so the asserts below stop proving too.
+   --  pragma Loop_Invariant (Sin_A in -1.0 .. 1.0);
+   --  pragma Loop_Invariant (Cos_A in -1.0 .. 1.0);
+end loop;
+pragma Assert (Vx_Body in Wheel_Disp);
+pragma Assert (Vy_Body in Wheel_Disp);
+```
+
+With the invariants commented out, the loop unrolls and the two asserts prove.
+
 ## Concepts
 
 ### Loops are cut points
 
-After a loop, GNATprove knows only that modified variables satisfy their type
-constraints. Every other property is forgotten unless stated in a `Loop_Invariant`.
-This is fundamental: the invariant is the **only** way to carry knowledge across
+A loop is a cut point in the proof, exactly as a subprogram call is. After a
+loop, GNATprove knows only that modified variables satisfy their type
+constraints; every other property is forgotten unless stated in a
+`Loop_Invariant`. The invariant is the **only** way to carry knowledge across
 iterations and out of the loop.
+
+This is the loop-scale analogue of SPARK's modularity principle
+(see [spark.md § Modularity is absolute](../spark/spark.md)). The subprogram
+boundary uses the contract (types + `Pre`/`Post` + `Global`); the loop
+boundary uses the loop invariant. The same diagnostic applies: when a check
+after a loop fails on a fact the body "obviously" established, the body's
+work did not leak out — the invariant must carry it.
+
+**Important exception:** a loop that GNATprove unrolls is *not* a cut point
+for its unrolled iterations — facts from the body flow naturally to post-loop
+checks with no invariant needed. See
+[Read This First](#read-this-first-is-an-invariant-even-needed) at the top
+of this file. Adding a `Loop_Invariant` to a loop that would otherwise unroll
+*creates* a cut point where none existed, and is usually a regression. The
+invariant/cut-point discipline in the rest of this file applies to loops
+that do not unroll.
 
 "Modified" includes both direct assignment and modification through a procedure
 call with an `out` or `in out` parameter. If a loop body calls a procedure that
@@ -152,12 +217,12 @@ the inner loop's cumulative effect.
 
 - **Placement**: Multiple invariants must be grouped (no intervening statements,
   except `Loop_Variant` and `Annotate` pragmas may be interleaved).
-- **Automatic unrolling**: GNATprove unrolls simple for-loops (< 20 iterations,
-  no invariant, only scalar local variables). Suppress with
-  `pragma Loop_Invariant (True)` or `--no-loop-unrolling`. Note: the
-  "scalar locals only" restriction applies to **unrolling**, not to
-  `Loop_Invariant` itself -- non-scalar variables are fine in loops with
-  explicit invariants.
+- **Automatic unrolling**: see "Read This First" at the top of this file for
+  the rule on when *not* to add an invariant. To *intentionally* disable
+  unrolling on a loop that would otherwise unroll, use
+  `pragma Loop_Invariant (True)` or pass `--no-loop-unrolling`. The "scalar
+  locals only" criterion applies to **unrolling**, not to `Loop_Invariant`
+  itself — non-scalar variables are fine in loops with explicit invariants.
 
 ## References
 

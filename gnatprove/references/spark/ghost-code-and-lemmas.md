@@ -20,6 +20,54 @@ Always reach for the lightest tool first:
    GNATprove does **not** verify. This is an unchecked assumption that
    threatens soundness. **Never introduce without explicit user permission.**
 
+### Lemmas are ordinary subprograms
+
+A lemma is just a ghost procedure. Its "lemma-ness" comes from two SPARK
+properties: it is ghost (no runtime effect, erased at compile time), and
+its postcondition is verified modularly (callers assume the postcondition
+without re-inspecting the body). Nothing else distinguishes it from a
+regular procedure.
+
+Two consequences worth internalizing:
+
+- **Lemmas compose.** A lemma body can call other lemmas to pick up their
+  postconditions, exactly like production code calls helpers. When a
+  lemma body grows unwieldy, decompose it into smaller lemmas and call
+  them -- the same instinct that applies to regular subprograms applies
+  here.
+- **Lemma bodies are subject to normal proof rules.** Loop invariants,
+  overflow checks, and every other obligation must still discharge inside
+  the body. The "lemma" label grants no shortcuts.
+
+### When a lemma doesn't prove
+
+Nearly every "this lemma doesn't prove" moment has the same cause: the
+contract is underspecified. Before suspecting solver weakness or a SPARK
+modeling limitation, check:
+
+- **Does the `Pre` carry every fact the body needs?** Parameter subtypes
+  and their constraints, ranges on globals, relationships between inputs.
+  If the body relies on `P (1, 1) >= 0` and the Pre doesn't say so, the
+  lemma cannot prove — the solver starts from the Pre, not from "whatever
+  was true at the call site". SPARK's modularity is absolute
+  (see [spark.md § Modularity is absolute](spark.md)).
+- **Does the `Post` expose every fact callers need?** If the body
+  establishes a useful intermediate fact that callers then re-derive,
+  strengthen the `Post`. The body's work does not leak out of its own
+  scope.
+- **Is there a frame gap?** For `in out` parameters or `Global` state,
+  callers lose any pre-call facts about unmodified parts unless the
+  `Post` or a frame clause says they are unchanged.
+
+A common confusion: "the lemma didn't prove, but moving the same code
+into a nested non-ghost procedure did." The nested version almost always
+has a tighter effective contract — typically because concrete `in out`
+parameters carry subtype bounds and its natural `Post` mentions more than
+the ghost lemma's did. The principle is the same either way: whatever
+the body needs or produces, the contract must state. Switching from
+lemma to nested procedure does not bypass modularity; it just forces you
+to write the contract a different way.
+
 ### Expression functions vs. regular ghost functions
 
 An **expression function** generates an implicit postcondition derived from its
@@ -149,6 +197,65 @@ Keep `Pre => Check` -- preconditions catch caller bugs and are cheap.
 
 For proof-helper loops that shouldn't execute at runtime, move them
 into a ghost procedure (erased entirely with `Ghost => Ignore`).
+
+## Organizing lemmas
+
+When the lemma set for a single subprogram grows beyond a handful
+(roughly **more than 5 lemmas, or 3 very large ones**), move those
+lemmas out of the parent package and into a **private ghost child
+package** named `<Parent>.<Subprogram>_Lemmas`.
+
+```ada
+private package Foo.Bar_Lemmas with Ghost is
+   procedure Lemma_Step_Monotonic (...) with Pre => ..., Post => ...;
+   procedure Lemma_Result_In_Range (...) with Pre => ..., Post => ...;
+   --  ...
+end Foo.Bar_Lemmas;
+```
+
+```ada
+package body Foo.Bar_Lemmas is
+   procedure Lemma_Step_Monotonic (...) is null;
+
+   procedure Lemma_Result_In_Range (...) is
+   begin
+      Lemma_Step_Monotonic (...);  -- lemmas call lemmas
+   end Lemma_Result_In_Range;
+end Foo.Bar_Lemmas;
+```
+
+Why this shape:
+
+- **Private child sees `Foo`'s private part.** Lemma contracts routinely
+  reference private types, full views of type invariants, or private
+  expression functions in `Foo`. A private child has that visibility;
+  a sibling package does not.
+- **Hidden from clients of `Foo`.** Private children can only be
+  `with`ed from `Foo`'s body (or from other private descendants of
+  `Foo`), so the lemma machinery stays out of the public interface.
+- **Whole-package `Ghost`.** Applying `with Ghost` to the package makes
+  every declaration inside it ghost automatically -- no need to repeat
+  the aspect on each lemma.
+
+Call sites in `Foo`'s body are unchanged: `Foo.Bar_Lemmas.Lemma_X (...);`
+at the proof point. If a parent has several heavy subprograms, give
+each one its own child (`Foo.Bar_Lemmas`, `Foo.Baz_Lemmas`) rather than
+pooling lemmas into a single package -- the scope of each child stays
+focused on one caller.
+
+**Keep the child additive.** Shared subtypes and constants that both
+the parent's body *and* the lemma child need (e.g., `Cov_Entry`,
+`Max_Bound`) belong in the **parent's private part** — not in the
+lemma child. The private child's spec sees the parent's private part,
+so lemma signatures can reference those subtypes; the parent's body
+has the same visibility for its own locals. Conceptually: removing
+the lemma child should leave a working program.
+
+Do **not** drop the package-level `with Ghost` on the lemma child to
+make its subtypes visible to non-ghost code. That destroys the
+ghost-ness the lemmas need and puts the shared declarations in the
+wrong place. If you reach for this, the subtypes shouldn't be in the
+child — move them to the parent's private part.
 
 ## Workflow: Status File Updates
 

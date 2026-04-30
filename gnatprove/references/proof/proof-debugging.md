@@ -17,6 +17,12 @@ Every unproved check falls into one of these categories:
 
 Causes 1-3 account for the vast majority of proof failures above `--level=2`.
 
+**Before adding a `Loop_Invariant`**: if the failing check is in or after a
+small, bounded `for` loop (< 20 iterations, scalar locals only), first confirm
+the loop is not already unrolling successfully. A `Loop_Invariant` disables
+unrolling and can strictly weaken downstream proof power. See
+[loops.md § Read This First](loops.md).
+
 Cause 4 can often been detected by using `--info` and analyzing messages that
 SPARK provides indicating imprecise modeling.
 
@@ -27,6 +33,25 @@ The most common mistake is declaring "the SMT solver can't prove this" too
 early. In practice, nearly every failure is: wrong code, missing information,
 overwhelming context, or a non-inductive invariant. "The prover is too weak"
 is the rarest cause.
+
+### Check messages on a conjoined postcondition
+
+A postcondition organized as a conjunction —
+
+```ada
+Post => P and then Q and then R
+```
+
+— does not give you independent status for each conjunct. When GNATprove
+reports a check message on `Q`, that does **not** imply that `P` and `R`
+proved. Analysis stops at the first failing conjunct; later conjuncts
+may also be unproved and you will only see them once the current failure
+is resolved. The same applies with `and`, `or`, and `or else`.
+
+Treat a check on a single conjunct as "at least this one fails" — not as
+"only this one fails". Expect fixing it to reveal new failures on
+adjacent conjuncts, and plan accordingly when judging progress or
+scoping a session.
 
 ### `--limit-line` as a diagnostic tool
 
@@ -41,6 +66,47 @@ above it (even unproved ones). This is powerful for what-if exploration:
 This avoids re-proving the whole subprogram during exploration. You **must**
 separately prove any assertions you insert.
 
+#### Conjunct lines in a Post, Contract_Cases, and Exceptional_Cases
+
+When a conjoined `Post`, `Contract_Cases`, and `Exceptional_Cases` is split
+across source lines:
+
+```ada
+1. Post =>
+2.   -- Comment
+3.   P
+4.   and then Q
+5.   and then R
+```
+
+GNATprove may report a check message on line 4 (attributed to `Q`), but
+**`--limit-line=file.ads:4` is a trap and must not be used here.** GNATprove
+will do some analysis and usually report success; that success does
+**not** mean `Q` was proved. The check anchored at `Q`'s line is not
+targetable in isolation this way.
+
+The only correct `--limit-line` target for this Post (without editing the
+source) is the line of the **first term** of the conjunction — line 3
+above. Note carefully:
+
+- Line 1 (`Post =>` alone) is wrong — it carries no term.
+- Line 2 (a comment) is wrong — likewise.
+- Line 4 (`and then Q`) is wrong — it is a continuation, and targeting it
+  yields a misleading pass.
+- Line 3 (`P`, the first term) is the only correct target; a run at this
+  line exercises the whole Post.
+
+If you need to isolate a single conjunct, edit the source to lift it into
+a named ghost predicate, expression function, or `pragma Assert` on its
+own line — then `--limit-line` can target that line unambiguously.
+
+- For a failing **precondition**, don't use `--limit-line` inside the Pre
+  at all; the check fires at the caller, so target the subprogram call
+  line at the call site.
+- For a failing **loop invariant**, the correct `--limit-line` target is
+  the line of the `Loop_Invariant` keyword itself — not the first term of
+  the invariant expression.
+
 ### GNATprove's "possible fix" suggestions
 
 These are hand-coded heuristics aimed at novice users. Treat them as
@@ -49,10 +115,17 @@ but may not suggest the best form of the fix.
 
 ## Decision Tree
 
-### Step 1: Is the code correct?
+### Step 1: Is the code — and the spec — correct?
 
 Compile with `-gnata` and run tests. If the check fires at runtime,
 it's a code bug.
+
+Similarly, if the failing `Post`, ghost predicate, or loop invariant is
+new or newly modified, sanity-check the spec itself with 2–3 concrete
+values before investing more proof effort: a "not actually true" spec
+looks identical to a "hard to prove" one — both manifest as timeouts
+or uninterpretable counterexamples. See
+[workflow.md § Step 2b](workflow.md#step-2b-sanity-check-specifications).
 
 ### Step 2: Missing annotations?
 
@@ -124,12 +197,33 @@ When investigating a failing check:
 
 ### Severity levels
 
-GNATprove messages fall into four separate categories:
+GNATprove messages fall into four categories:
 
 - **Errors**: SPARK violations, legality issues. Must fix.
-- **Check messages** (`high` / `medium` / `low`): Unproved checks, ranked by priority.
-- **Warnings**: Suspicious but non-blocking situations.
+- **Warnings**: Suspicious situations (unused variables, potentially
+  missing precondition hints, etc.). Treat as errors during a proof
+  campaign — consider `--warnings=error` so they stop the run rather
+  than getting lost in the noise.
+- **Check messages**: Unproved checks, tagged with a **confidence**
+  level (`low` / `medium` / `high`) — see next section. All must be
+  addressed.
 - **Info**: Proved checks (visible with `--report=all`).
+
+### Check-message confidence
+
+The `low` / `medium` / `high` tag on a check message reflects how sure
+the tool is that the check is a real problem. This is **not a priority
+ranking**; all three mean "this check did not prove".
+
+| Level | Meaning |
+|-------|---------|
+| `low` | Weak evidence of a real problem. Often a missing precondition, missing hint, or solver-budget issue. |
+| `medium` (default) | The prover is confident the check is a real problem but has not validated a concrete failing input. Investigate as you would any proof failure. |
+| `high` | GNATprove has **validated a concrete counterexample** — this is a definitively failing input, not "likely" wrong. Treat it as a failing test vector. |
+
+**Do NOT apply `pragma Annotate (GNATprove, False_Positive, ...)` to a
+`high` check.** The counterexample proves the condition is reachable;
+silencing it hides a real bug. Fix the code or contract.
 
 ### Common check categories
 
@@ -147,9 +241,39 @@ GNATprove messages fall into four separate categories:
 
 ### Counterexample interpretation
 
-Counterexamples may not represent feasible paths. "Impossible" values
-usually indicate a missing precondition, not a real bug. Use
-`--counterexamples=on` (default at level >= 2).
+For `low` and `medium` check messages, counterexamples may not represent
+feasible paths. "Impossible" values usually indicate a missing
+precondition, not a real bug. Use `--counterexamples=on` (default at
+level >= 2).
+
+For `high` check messages, GNATprove has **validated the counterexample**
+through its internal checking — it IS a real failing input, not a
+spurious path from an overly abstracted model. Plug the CE values into
+the failing expression by hand: they will reproduce the failure.
+Investigate the code or contract, not the counterexample.
+
+### "all paths raise exceptions"
+
+A `high: all paths in Subprogram_Name raise exceptions or do not
+terminate normally` is a **high-confidence check message**, not a
+warning. Its usual root cause is a statement that flow analysis can
+see is false — typically a `pragma Assert`, `pragma Assume`, or
+precondition whose condition is false, often silenced with
+`pragma Annotate (GNATprove, False_Positive, ...)`. Since False
+implies anything, every path through the subprogram then appears to
+raise an exception from the tool's point of view.
+
+The annotation does not hide the contradiction from flow analysis;
+it only defers the proof obligation. Flow analysis still models the
+suppressed assertion as a potential `Assertion_Error` raise point,
+and the derivable False propagates.
+
+**To fix:** find the False_Positive-annotated assertion (or
+`pragma Assume`) in the subprogram and verify its condition is actually
+true. If it is — strengthen the precondition or body so the prover
+can discharge it without the annotation. If it is not — the condition
+is false, so the code or contract is wrong and must be changed.
+`False_Positive` is not a fix; it is a deferred proof obligation.
 
 ## References
 
