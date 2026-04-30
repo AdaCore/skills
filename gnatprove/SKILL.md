@@ -44,8 +44,14 @@ invocation in this order:
 To prove SPARK code, run GNATprove via Bash with the project's environment.
 
 ```bash
-  gnatprove -P <project.gpr> -j0 --output=oneline <arguments> 2>&1 | tee gnatprove-run.txt
+  gnatprove -P <project.gpr> -j0 --output=oneline --output-header <arguments> 2>&1 | tee gnatprove-run.txt
 ```
+
+`--output-header` is mandatory on every invocation. It writes a header into
+`gnatprove.out` recording the exact command line, gnatprove version, host, and
+timestamp. This is how a reader — a returning user, or the main agent
+verifying a subagent's run — confirms *how* gnatprove was invoked without
+guessing or asking. See [gnatprove-out.md § Invocation header](references/gnatprove/gnatprove-out.md#invocation-header).
 
 **Never run two gnatprove instances concurrently.** `gnatprove` assumes
 exclusive ownership of its output directories; parallel runs corrupt results.
@@ -67,6 +73,7 @@ Common arguments:
   above. Line numbers shift after any edit; always confirm you have the right
   `MM`)
 - `--output=oneline` (one check per line; good for status assessment)
+- `--output-header` (write invocation header into `gnatprove.out`; mandatory)
 - `-f` (force full reanalysis)
 
 *Note*: with `--limit-subp` or `--limit-line`, the filename must NOT include

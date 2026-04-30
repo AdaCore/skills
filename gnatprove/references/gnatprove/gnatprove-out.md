@@ -9,9 +9,58 @@ without re-running the tool.
 
 ## File structure
 
-The file has four sections, in order:
+The file has five sections, in order:
 
-### 1. Summary table
+### 1. Invocation header
+
+When gnatprove is run with `--output-header` (required — see
+[SKILL.md](../../SKILL.md) Quick Start and
+[command-reference.md § Output Control](command-reference.md#output-control)),
+`gnatprove.out` begins with an invocation header that records *how* gnatprove
+was run:
+
+```
+date               : 2026-04-22 12:30:29
+gnatprove version  : FSF 15.0
+host               : Darwin 64 bits
+command line       : gnatprove -P mars_rover.gpr -j0 --output=oneline --level=2 --output-header
+ Proof_Switches attribute:
+   Ada: --no-subprojects
+```
+
+**Fields:**
+- **`date`** -- when the run completed
+- **`gnatprove version`** -- SPARK Pro release (e.g. `SPARK Pro 27.0w (20260413)`)
+  or FSF release (e.g. `FSF 15.0`); matches `gnatprove --version`
+- **`host`** -- the machine gnatprove ran on
+- **`command line`** -- the *literal* command-line arguments the invocation
+  received. This is what was passed to `gnatprove` (or `alr gnatprove`); it
+  includes the project file, scope flags (`--limit-subp`, `--limit-line`,
+  `-u`), `--level`, `--mode`, `-f`, `-j`, `--output=*`, and any other
+  switches — exactly as typed.
+- **`Proof_Switches attribute`** -- switches coming from the GPR project
+  file's `Proof_Switches` attribute, *not* the command line. Present only
+  when the project declares them. These also influence the run and are not
+  visible from the invocation alone.
+
+**How to use:** Read the header *first* whenever you open `gnatprove.out`.
+Every interpretation downstream — what scope the run covered, what level it
+used, whether `-f` was passed, which flags the GPR file added — depends on
+knowing what was invoked. The header is the authoritative record.
+
+**Primary use case: verifying a subagent's run.** The main agent cannot
+observe the subagent's Bash call directly. After the subagent returns, the
+main agent reads this header to confirm exactly what was run — the scope
+(`--limit-subp=file.adb:NN` vs. `-u` vs. whole program), the proof level,
+and whether forbidden switches (`-f` in the tactical loop) slipped through.
+This is the foundation of
+[workflow.md § Step 3b: Verify Subagent Results](../proof/workflow.md#step-3b-verify-subagent-results).
+
+**Secondary use case: reconstructing a prior run.** A returning user (or a
+future session) opening `gnatprove.out` sees the command that produced it.
+Without the header, the file is a report whose provenance must be guessed.
+
+### 2. Summary table
 
 ---SPARK Analysis results        Total         Flow   Provers   Justified   Unproved
 
@@ -48,7 +97,7 @@ which *category* of check failed. This guides your strategy: an unproved
 run-time check likely needs a type bound or precondition, while an unproved
 assertion needs a proof hint or code restructuring.
 
-### 2. Max steps / hardest checks
+### 3. Max steps / hardest checks
 
 max steps used for successful proof: 1234
 
@@ -64,7 +113,7 @@ the step limit for the current `--level`, note them as proof stability risks.
 If the section says "No check found with max time greater than 1 second", the
 proof run was easy and all VCs were dispatched quickly.
 
-### 3. Detailed analysis report
+### 4. Detailed analysis report
 
 Analyzed N unit(s)
 in unit , X subprograms and packages out of Y analyzed
@@ -85,7 +134,7 @@ spark-containers-functional-vectors.ads:287, instantiated at ...`) are library
 code from SPARK containers. These are always either "proved" or "skipped" and
 can be ignored unless they show failures.
 
-### 4. EOF
+### 5. EOF
 
 The file ends after the last detailed entry. There is no trailing summary.
 
@@ -93,6 +142,13 @@ The file ends after the last detailed entry. There is no trailing summary.
 
 | Question | How to answer from gnatprove.out |
 |----------|--------------------------------|
+| What command produced this file? | Invocation header, `command line` field |
+| What scope did the run cover? | Invocation header, `command line` — look for `--limit-subp`, `--limit-line`, `-u`, or absence of all three (whole program) |
+| What proof level was used? | Invocation header, `command line` — `--level=N` (absent = 0) |
+| Was `-f` passed? | Invocation header, `command line` — look for `-f` or `--force` |
+| What gnatprove version ran? | Invocation header, `gnatprove version` field |
+| Did the GPR file add switches? | Invocation header, `Proof_Switches attribute` block (if present) |
+| When did the run complete? | Invocation header, `date` field |
 | Are there any unproved checks? | Summary table, Unproved column |
 | How many and what kind? | Summary table rows with nonzero Unproved |
 | Which subprograms have failures? | Search for `not proved` in detailed report |
@@ -116,11 +172,17 @@ and completes in milliseconds. It is not subject to the no-redundant-runs rule.
 
 ## Workflow integration
 
-After reading `gnatprove.out`:
+After opening `gnatprove.out`:
 
-1. Note the unproved count and categories from the summary table
-2. Grep for `not proved` in the detailed section to get the subprogram list
-3. For each unproved subprogram, use `--limit-subp=file.adb:NN` (using the
+1. **Read the invocation header first** — scope, level, `-f`, version. Every
+   interpretation below depends on knowing what was run. If the header is
+   missing, the last run was made without `--output-header` and the file's
+   provenance is unknown; do not draw conclusions about "what's left to
+   prove" from it, and ensure the *next* run includes `--output-header`
+   (the skill's templates mandate it).
+2. Note the unproved count and categories from the summary table
+3. Grep for `not proved` in the detailed section to get the subprogram list
+4. For each unproved subprogram, use `--limit-subp=file.adb:NN` (using the
     declaration line from the report) to get per-check details
-4. Follow the investigation workflow in [proof-debugging.md](../proof/proof-debugging.md)
-5. Update the proof status file with findings
+5. Follow the investigation workflow in [proof-debugging.md](../proof/proof-debugging.md)
+6. Update the proof status file with findings

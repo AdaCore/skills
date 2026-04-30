@@ -4,28 +4,62 @@
 
 ### Information hiding promotes provability
 
-SPARK verification is modular: when proving a subprogram, the prover sees only
-the contracts of callees, not their bodies. This is the same principle as
-information hiding in software design — the rest of the system doesn't need to
-know *how* a computation is performed, only *what* it guarantees. And just as
-information hiding promotes flexibility by insulating callers from implementation
-changes, it promotes provability by insulating the prover from irrelevant detail.
+SPARK verification is strictly modular: when proving a subprogram, the prover
+sees callees only through their contracts — types, `Pre`, `Post`, `Global`,
+`Depends`, predicates — and nothing else
+(see [spark.md § Modularity is absolute](../spark/spark.md)). This is the
+same principle as information hiding in software design: the rest of the system
+doesn't need to know *how* a computation is performed, only *what* it
+guarantees. And just as information hiding promotes flexibility by insulating
+callers from implementation changes, it promotes provability by insulating
+the prover from irrelevant detail.
 
-This matters because we all tend to write monolithic subprograms. We know it's
-bad for readability and reuse, but we do it anyway. For proof, the cost is
-concrete: a monolithic body drowns the prover in context. Every local variable,
-every intermediate computation, every branch is visible, and the prover must
-reason about all of it simultaneously. This is exactly why lemmas work — they
-package a fact behind a contract and hide the justification. But the same
-principle applies to regular (non-ghost) code.
+This is exactly why lemmas work — they package a fact behind a contract and
+hide the justification. The same principle applies to regular (non-ghost) code:
+every extracted subprogram is a small lemma for its own body. The consequence
+is that **every extraction is a contract-design exercise**: if the body needs
+facts from the caller, the `Pre` must carry them; if the body establishes
+facts the caller needs, the `Post` must expose them. An extraction that
+"loses information" is always a contract that doesn't say enough — not
+something the prover forgot.
+
+### Cohesion and coupling are the refactoring targets
+
+High cohesion and low coupling are the universal goals of good software design.
+They govern **provability** with even more force than they govern readability:
+
+- **Low coupling** — narrow, typed interfaces with few globals — keeps the
+  prover's view of each call site small. A subprogram that reaches across
+  the program forces the prover to track its effects wherever it runs.
+- **High cohesion** — each subprogram does one thing — keeps its contract
+  crisp. A subprogram that does three things needs a postcondition with
+  three conjuncts, and every caller pays for all three even when it uses
+  only one.
+
+**SMT solvers drown in context the same way LLMs do.** The provers behind
+GNATprove accumulate every in-scope fact — each local variable, each branch,
+each prior assertion — into one search and try to discharge the goal from
+all of it at once. Context overload causes the same failure modes as it does
+in an LLM: timeouts on easy goals, budget burned on irrelevancies, and
+unstable results that regress under unrelated edits. The cure is to shrink
+the context, not to coach the solver with more hints. Every subprogram call
+is a **hard cut** (the prover sees the callee's contract, not its body);
+every `Assert_And_Cut` is a **soft cut** (facts disappear after the assertion).
+
+When a proof is stubbornly failing, the first questions are diagnostic, not
+technical: *Is this subprogram doing too many things?* (cohesion) *Does it
+reach into too much state?* (coupling). Those are the refactoring targets —
+the contract and the assertion come later.
 
 ### Decompose before annotating
 
-When a subprogram has unproved checks, the first question should be: **should I
-break this subprogram into smaller pieces?** Extract a coherent chunk of logic
-into its own subprogram with a clear contract. The original body becomes simpler
-(the prover sees the contract, not the extracted code), and the extracted
-subprogram is proved in isolation with only its own local context.
+When a subprogram has unproved checks, the first question is: **is this
+subprogram too big, or doing too many things?** If yes, decompose it before
+reaching for assertions, lemmas, or higher proof levels. Extract a coherent
+chunk of logic into its own subprogram with a clear contract. The caller
+body becomes simpler (the prover sees the contract, not the extracted code),
+and the extracted subprogram is proved in isolation with only its own local
+context.
 
 There is a cost: each new subprogram call is a cut point in the analysis.
 Preconditions and postconditions are required, and the prover must verify them.
@@ -47,6 +81,11 @@ of context: parsing temporaries, validation flags, transformation intermediates.
 A lemma or assertion might rescue the proof — but extracting `Parse`, `Validate`,
 and `Transform` into their own subprograms means the output section sees only
 their postconditions. The proof often becomes trivial.
+
+The monolithic form is low-cohesion by construction (four concerns in one
+body) and high-coupling by construction (every local touched by one concern
+is visible to the next). Decomposing fixes both dimensions in the same
+refactoring, which is why it is such a high-yield move when proof is hard.
 
 ## Patterns
 

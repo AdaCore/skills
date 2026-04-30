@@ -41,9 +41,11 @@ Run GNATprove with `--output=oneline` before reading any code in depth.
 - Each message is self-explanatory (obvious overflow or missing range constraint
   where the fix is immediately clear)
 
-Work inline: read the subprogram, fix each check, re-verify with `--limit-subp -f`,
-then review for antipatterns and widen scope. No proof-status.md or subagents
-needed.
+Work inline: read the subprogram, fix each check, re-verifying at `--limit-subp`
+(without `-f`) as you go. Once all checks are addressed, run a final
+`--limit-subp -f` to confirm — the single `-f` run at the close matches [the
+Step 5 widening principle](workflow.md#step-5-widen-scope-and-re-verify). Then
+review for antipatterns and widen scope. No proof-status.md or subagents needed.
 
 **Escape hatch**: if any fix appears to be non-obvious, a loop invariant is
 needed, or an unexpected check appears, switch to the full campaign path.
