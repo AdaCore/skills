@@ -1,6 +1,6 @@
 ---
 name: alire
-description: This skill should be used when the user wants to "use Alire", "install Alire","create an Alire project", "add a crate" or otherwise refine the crate structure of an Ada project
+description: This skill should be used when the user wants to "use Alire", "install Alire","create an Alire project", "add a crate", "set up tests for an Alire crate", "add AUnit / GNATtest to an Alire project", or otherwise refine the crate structure of an Ada project
 license: Apache-2.0
 metadata:
   version: "0.1.0"
@@ -37,10 +37,12 @@ Note: `alr` has comprehensive built-in help. At any point, `alr --help` lists al
 | `alr get` | Fetch a crate from the index | [alire-get.md](references/alire-get.md) |
 | `alr with` | Add a dependency | [alire-with.md](references/alire-with.md) |
 | `alr pin` | Pin a dependency to a local path or Git repo | [alire-pin.md](references/alire-pin.md) |
+| `alr install` | Install a binary-tool crate to a shared prefix | [alire-install.md](references/alire-install.md) |
 | `alr build`  | Build the project | [alire-build.md](references/alire-build.md) |
 | `alr run` | Run the project | [alire-run.md](references/alire-run.md) |
 | `alr exec`  | Execute a command in the project environment | [alire-exec.md](references/alire-exec.md) |
 | `alr printenv` | Print environment variables | [alire-printenv.md](references/alire-printenv.md) |
+| — | Set up tests for a crate (AUnit, GNATtest) | [testing.md](references/testing.md) |
 | — | Cross-compile for Raspberry Pi Pico | [raspberry-pi-pico.md](references/raspberry-pi-pico.md) |
 | — | Cross-compile for Zephyr (Arm / RISC-V) | [zephyr.md](references/zephyr.md) |
 
