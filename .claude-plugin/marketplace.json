@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "adacore-skills",
+  "description": "AdaCore agent skills for Ada and SPARK development tools.",
+  "owner": {
+    "name": "AdaCore",
+    "email": "support@adacore.com"
+  },
+  "plugins": [
+    {
+      "name": "adacore",
+      "source": "./plugins/adacore",
+      "description": "AdaCore agent skills for Ada and SPARK development: Alire (package management), GNATprove (SPARK formal verification), GNATfuzz (coverage-guided fuzzing), and GNATtest (unit testing).",
+      "category": "ada-tooling",
+      "tags": ["ada", "spark", "alire", "gnatprove", "gnatfuzz", "gnattest", "formal-verification", "fuzzing", "testing"]
+    }
+  ]
+}

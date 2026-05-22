@@ -19,11 +19,38 @@ We hope you find these skills useful. Keep an eye on this repository; we'll be
 adding new skills over time and evolving those that are here as we learn how to
 tune them better for success with agents.
 
-## Usage
+## Installation
 
-To use these skills, simply follow the install instructions that are
-provided by your selected agent. Each agent installs skills slightly
-differently.
+You can install these skills two ways:
+
+- **Plugin marketplace** (recommended): your agent registers this repo as a
+  remote marketplace and installs the `adacore` plugin from it. Updates flow
+  automatically when AdaCore ships a new plugin version upstream.
+- **Manual**: download the skill folders you want from
+  [`plugins/adacore/skills/`](plugins/adacore/skills) into your agent's
+  project-local skills directory. Re-download to update.
+
+When prompted by your agent for a marketplace, use the GitHub shorthand
+`AdaCore/skills`. When prompted for a plugin name, use `adacore`. The
+marketplace's catalog name is `adacore-skills` — some agents use the
+`<plugin>@<marketplace>` form, e.g. `adacore@adacore-skills`.
+
+| Agent                    | Plugin install                                                                                                | Manual install                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Claude Code              | [docs](https://code.claude.com/docs/en/discover-plugins#community-marketplace)                                | [docs](https://code.claude.com/docs/en/skills#where-skills-live)                              |
+| OpenAI Codex             | [docs](https://developers.openai.com/codex/plugins/build#add-a-marketplace-from-the-cli)                      | [docs](https://developers.openai.com/codex/skills#where-to-save-skills)                       |
+| GitHub Copilot (VS Code) | [docs](https://code.visualstudio.com/docs/copilot/customization/agent-plugins#_configure-plugin-marketplaces) | [docs](https://code.visualstudio.com/docs/copilot/customization/agent-skills#_create-a-skill) |
+| Cursor                   | [docs](https://cursor.com/docs/plugins#add-a-team-marketplace) (admin only)                                   | [docs](https://cursor.com/docs/skills)                                                        |
+| Mistral Vibe             | —                                                                                                             | [docs](https://docs.mistral.ai/mistral-vibe/agents-skills)                                    |
+| OpenCode                 | —                                                                                                             | [docs](https://opencode.ai/docs/skills/)                                                      |
+| Cline                    | —                                                                                                             | [docs](https://docs.cline.bot/customization/skills#where-skills-live)                         |
+| JetBrains Junie          | —                                                                                                             | [docs](https://junie.jetbrains.com/docs/agent-skills.html#skill-location)                     |
+
+If your agent isn't listed but follows the [Agent Skills open
+standard](https://agentskills.io), check its own docs for the skills directory
+path.
+
+## Usage
 
 Once installed, you can bring the skill into your conversation / prompt by
 using the slash command associated with the skill. So, for example, if you

@@ -1,0 +1,17 @@
+{
+  "name": "adacore-skills",
+  "interface": {
+    "displayName": "AdaCore Skills"
+  },
+  "plugins": [
+    {
+      "name": "adacore",
+      "source": "./plugins/adacore",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
