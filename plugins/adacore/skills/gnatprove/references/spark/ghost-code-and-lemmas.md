@@ -113,7 +113,8 @@ Lemma_Div_Is_Monotonic (Val1 => X, Val2 => Y, Denom => Z);
 -- Prover now knows: X <= Y implies X/Z <= Y/Z (for Z > 0)
 ```
 
-These are not for simple range/overflow facts -- use preconditions for those.
+These give relational facts between values, not absolute bounds on a single
+value -- for bounds, constrain the inputs via `Pre` or subtypes.
 
 | Package | Domain |
 |---------|--------|
