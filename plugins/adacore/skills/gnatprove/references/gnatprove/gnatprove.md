@@ -223,9 +223,11 @@ analysis — *but only for code that was actually analyzed*. Distinguish
   obligations. Treat it as a red flag, not a pass.
 * `Success: all checks proved (N checks)` only covers the N checks that were
   generated. If you expected a body to be verified and see few or zero checks
-  for it, the body was probably skipped. Sanity-check that N is plausible for
-  what you asked to prove, and run `gnatprove` *scoped to the specific unit*
-  (`-u file`) to see per-unit warnings that a whole-project run can bury.
+  for it, the body was probably skipped. (**Important**: this message is may 
+  be omitted for older versions of SPARK.)Sanity-check that N is plausible
+  for what you asked to prove, and run `gnatprove` *scoped to the specific 
+  unit* (`-u file`) to see per-unit warnings that a whole-project run can 
+  bury.
 * A **generic** unit is never analyzed on its own (`warning: generic
   compilation unit is not analyzed; only instantiations of the generic will be
   analyzed`). Its body's VCs are generated only through an instantiation that
