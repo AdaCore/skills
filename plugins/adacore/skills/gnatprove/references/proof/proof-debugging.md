@@ -113,6 +113,20 @@ These are hand-coded heuristics aimed at novice users. Treat them as
 directional hints, not commands. They're often right about *what's missing*
 but may not suggest the best form of the fix.
 
+## Case-Specific Playbooks
+
+Some check failures have a specific, recurring root cause whose fix is not
+obvious from the generic decision tree below — the symptom even points the
+wrong way (e.g. a "discriminant check" that has nothing to do with which
+variant was accessed). When a symptom here matches, read the linked playbook
+*before* working through the decision tree.
+
+| Symptom | Playbook |
+|---------|----------|
+| `discriminant check` on a whole-object assignment that *changes* a discriminant of a mutable discriminated record | [mutable-discriminants.md](mutable-discriminants.md) |
+| `dynamic accessibility check` on a traversal function returning an anonymous `access` derived from a parameter (a `Reference`/`Constant_Reference`-style borrow) | [dynamic-accessibility.md](dynamic-accessibility.md) |
+| `type is unsuitable as a source for unchecked conversion` / "might have unused bits" (often with `data representation info unavailable`) | [unchecked-conversion-unused-bits.md](unchecked-conversion-unused-bits.md) |
+
 ## Decision Tree
 
 ### Step 1: Is the code — and the spec — correct?
@@ -237,7 +251,9 @@ silencing it hides a real bug. Fix the code or contract.
 | `postcondition` | Body doesn't establish Post |
 | `loop invariant init` | Invariant false on first iteration |
 | `loop invariant preservation` | Invariant not maintained across iteration |
-| `discriminant check` | Wrong variant accessed |
+| `discriminant check` | Discriminant constraint violated — *not necessarily* a wrong-variant access; on a whole-object assignment that changes a discriminant, see [Case-Specific Playbooks](#case-specific-playbooks) |
+| `dynamic accessibility check` | Accessibility level of an anonymous-access result cannot be bounded statically; common in traversal functions — see [Case-Specific Playbooks](#case-specific-playbooks) |
+| `unsuitable as a source for unchecked conversion` | Source type of an `Unchecked_Conversion` may have unused bits (not gap-less); needs a confirming `Object_Size` and/or aliased components with known bounds — see [Case-Specific Playbooks](#case-specific-playbooks) |
 
 ### Counterexample interpretation
 
