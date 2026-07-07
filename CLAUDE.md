@@ -3,8 +3,8 @@
 ## What This Repository Is
 
 A **plugin marketplace** of agent skills for AdaCore tools. The whole
-toolchain ships as a single `adacore` plugin that bundles four skills
-(`alire`, `gnatfuzz`, `gnatprove`, `gnattest`). Users install once and get
+toolchain ships as a single `adacore` plugin that bundles five skills
+(`alire`, `gnatdoc`, `gnatfuzz`, `gnatprove`, `gnattest`). Users install once and get
 the full set of Ada/SPARK skills.
 
 ## Repository Structure
