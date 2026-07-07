@@ -1,7 +1,7 @@
 {
   "name": "adacore",
-  "version": "0.1.0",
-  "description": "AdaCore agent skills for Ada and SPARK development: Alire (package management), GNATprove (SPARK formal verification), GNATfuzz (coverage-guided fuzzing), and GNATtest (unit testing).",
+  "version": "0.3.0",
+  "description": "AdaCore agent skills for Ada and SPARK development: Alire (package management), GNATprove (SPARK formal verification), GNATfuzz (coverage-guided fuzzing), GNATtest (unit testing), and GNATdoc (documentation generation).",
   "author": {
     "name": "AdaCore",
     "email": "support@adacore.com"
@@ -9,8 +9,8 @@
   "license": "Apache-2.0",
   "interface": {
     "displayName": "AdaCore",
-    "shortDescription": "Ada and SPARK skills: Alire, GNATprove, GNATfuzz, GNATtest",
-    "longDescription": "AdaCore agent skills for Ada and SPARK development: Alire (package management), GNATprove (SPARK formal verification), GNATfuzz (coverage-guided fuzzing), and GNATtest (unit testing).",
+    "shortDescription": "Ada and SPARK skills: Alire, GNATprove, GNATfuzz, GNATtest, GNATdoc",
+    "longDescription": "AdaCore agent skills for Ada and SPARK development: Alire (package management), GNATprove (SPARK formal verification), GNATfuzz (coverage-guided fuzzing), GNATtest (unit testing), and GNATdoc (documentation generation).",
     "developerName": "AdaCore",
     "category": "Developer Tools"
   }
