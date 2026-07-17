@@ -53,6 +53,24 @@ Treat a check on a single conjunct as "at least this one fails" — not as
 adjacent conjuncts, and plan accordingly when judging progress or
 scoping a session.
 
+### Restate a property per branch after a conditional
+
+When a property must hold after an `if`/`case` and fails as a single check on
+the merged control-flow path, restate it with a `pragma Assert` at the end of
+*each* branch. The prover then discharges it branch-by-branch, with each
+branch's concrete state, instead of once against the disjunction of all paths —
+which often times out or forces the solver to re-derive the branch split itself.
+
+This is the control-flow analogue of splitting a conjoined postcondition: there
+you isolate a conjunct, here you isolate a path. It pairs naturally with the
+postcondition case: assert the property in each branch, and the final
+postcondition becomes a trivial merge.
+
+Watch the cost: each branch assert is a hypothesis on that path (see the caution
+on speculative asserts in
+[ghost-code-and-lemmas.md](../spark/ghost-code-and-lemmas.md)). Restate the
+property you actually need, not extra scaffolding.
+
 ### `--limit-line` as a diagnostic tool
 
 `--limit-line=file.adb:NN` proves **exactly** line NN, assuming all assertions
