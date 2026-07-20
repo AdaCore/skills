@@ -20,6 +20,12 @@ Always reach for the lightest tool first:
    GNATprove does **not** verify. This is an unchecked assumption that
    threatens soundness. **Never introduce without explicit user permission.**
 
+**An assertion is also a hypothesis.** Every discharged `pragma Assert` stays
+in context and is fed to the solver for all subsequent checks in scope. Add
+assertions only where a specific check needs them -- never speculatively "to
+help". Surplus asserts enlarge the context and can slow or break unrelated
+checks, the same failure mode as an over-large subprogram.
+
 ### Lemmas are ordinary subprograms
 
 A lemma is just a ghost procedure. Its "lemma-ness" comes from two SPARK
@@ -168,6 +174,23 @@ begin
    end loop;
 end;
 ```
+
+### Wrap heavy ghost code in a ghost lemma
+
+Any complex piece of ghost code needed solely for proof carries a large
+footprint of intermediate VCs. Left inline, this heavy context remains in scope
+as hypotheses for every later check in the enclosing subprogram—causing
+unrelated properties to time out. Furthermore, the compiler will not
+automatically optimize away or remove complex statements (like loops or
+conditionals) just because they only have ghost effects.
+
+Move the ghost code into a dedicated ghost lemma. Its Post should export only
+the exact fact the caller needs; the heavy context stays inside the lemma body
+and never pollutes the caller's other VCs.
+
+This is the ghost-code instance of "extract to reduce proof context." Reserve
+it for genuinely heavy or looping ghost code—a two- or three-line assert or
+basic lemma call does not warrant its own lemma.
 
 ### `Assert_And_Cut` (reduce proof context)
 
